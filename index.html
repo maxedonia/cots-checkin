@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>COTS — Welcome</title>
+<style>
+  :root {
+    --ink:     #1a1a2e;
+    --bg:      #f5f3ff;
+    --card:    #ffffff;
+    --purple:  #6c3fc5;
+    --purple2: #9b6dff;
+    --teal:    #00a99d;
+    --rose:    #e85d75;
+    --muted:   #7a7a9a;
+    --border:  #e2dff5;
+    --success: #2e9e6b;
+    --radius:  18px;
+    --shadow:  0 4px 24px rgba(108,63,197,.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* ── Progress bar ─────────────────────────── */
+  #progress-bar-wrap {
+    position: fixed; top: 0; left: 0; right: 0; height: 5px;
+    background: var(--border); z-index: 100;
+  }
+  #progress-bar {
+    height: 100%; background: linear-gradient(90deg, var(--purple), var(--purple2));
+    transition: width .5s cubic-bezier(.4,0,.2,1);
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ── Shell ─────────────────────────────────── */
+  .shell {
+    width: 100%; max-width: 480px;
+    padding: 60px 20px 40px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  /* ── Card / Step ───────────────────────────── */
+  .step {
+    display: none;
+    animation: slideIn .35s cubic-bezier(.4,0,.2,1) both;
+  }
+  .step.active { display: flex; flex-direction: column; gap: 20px; }
+  .step.leaving { animation: slideOut .25s cubic-bezier(.4,0,.2,1) both; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-16px); }
+  }
+
+  /* ── Step label ────────────────────────────── */
+  .step-label {
+    font-size: 12px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--purple2);
+  }
+
+  /* ── Headings ──────────────────────────────── */
+  h1 { font-size: 2rem; font-weight: 800; color: var(--ink); line-height: 1.1; }
+  h2 { font-size: 1.5rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  p.sub  { font-size: 1rem; color: var(--muted); line-height: 1.55; }
+  p.hint { font-size: .85rem; color: var(--muted); }
+
+  /* ── Logo mark ─────────────────────────────── */
+  .logo-mark {
+    width: 64px; height: 64px; border-radius: 20px;
+    background: linear-gradient(135deg, var(--purple), var(--teal));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; box-shadow: var(--shadow);
+  }
+
+  /* ── Input fields ──────────────────────────── */
+  .field-group { display: flex; flex-direction: column; gap: 14px; }
+
+  .field-wrap { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: .85rem; font-weight: 600; color: var(--ink); }
+  label .opt { font-weight: 400; color: var(--muted); }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  select {
+    width: 100%;
+    padding: 16px 18px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1.05rem;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--card);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--purple2);
+    box-shadow: 0 0 0 4px rgba(155,109,255,.15);
+  }
+  input.error { border-color: var(--rose); }
+  .field-error { font-size: .82rem; color: var(--rose); font-weight: 500; display: none; }
+  .field-error.show { display: block; }
+
+  /* ── Pronoun chips ─────────────────────────── */
+  .chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .chip {
+    padding: 18px 14px;
+    border: 2.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    cursor: pointer;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: all .18s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .chip:active { transform: scale(.96); }
+  .chip.selected {
+    border-color: var(--purple);
+    background: #f0eaff;
+    color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(108,63,197,.15);
+  }
+
+  /* ── How heard chips ───────────────────────── */
+  .heard-grid { display: flex; flex-direction: column; gap: 10px; }
+  .heard-chip {
+    padding: 16px 18px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    cursor: pointer;
+    font-size: .95rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-align: left;
+    transition: all .18s;
+    display: flex; align-items: center; gap: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .heard-chip .icon { font-size: 1.3rem; flex-shrink: 0; }
+  .heard-chip:active { transform: scale(.98); }
+  .heard-chip.selected {
+    border-color: var(--teal);
+    background: #e6faf8;
+    color: #00756e;
+    box-shadow: 0 0 0 3px rgba(0,169,157,.12);
+  }
+  .heard-chip.selected .check { display: flex; }
+  .check {
+    display: none; margin-left: auto;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--teal); align-items: center; justify-content: center;
+    color: white; font-size: 13px; flex-shrink: 0;
+  }
+
+  /* ── Buttons ───────────────────────────────── */
+  .btn-primary {
+    width: 100%; padding: 18px;
+    background: linear-gradient(135deg, var(--purple), var(--purple2));
+    color: white; border: none; border-radius: var(--radius);
+    font-size: 1.05rem; font-weight: 700; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(108,63,197,.35);
+    transition: transform .15s, box-shadow .15s;
+    letter-spacing: .01em;
+  }
+  .btn-primary:active { transform: scale(.97); box-shadow: 0 3px 12px rgba(108,63,197,.25); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  .btn-back {
+    background: none; border: none; color: var(--muted);
+    font-size: .9rem; cursor: pointer; padding: 8px 0;
+    display: flex; align-items: center; gap: 6px;
+    font-family: inherit; align-self: flex-start;
+  }
+  .btn-back:active { color: var(--ink); }
+
+  /* ── Email verify UI ───────────────────────── */
+  .verify-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 20px;
+    font-size: .8rem; font-weight: 600;
+    background: #e6faf8; color: var(--success);
+    margin-top: 4px;
+  }
+
+  /* ── Success screen ─────────────────────────── */
+  .success-ring {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--success), var(--teal));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    box-shadow: 0 6px 24px rgba(0,169,157,.3);
+    animation: popIn .5s cubic-bezier(.34,1.56,.64,1) .1s both;
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(.4); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .summary-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .summary-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: .92rem;
+  }
+  .summary-row .key { color: var(--muted); font-weight: 500; }
+  .summary-row .val { color: var(--ink); font-weight: 600; text-align: right; max-width: 60%; word-break: break-word; }
+  .divider { height: 1px; background: var(--border); }
+
+  /* ── Footer note ─────────────────────────────── */
+  .footer-note {
+    font-size: .78rem; color: var(--muted); text-align: center; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar-wrap"><div id="progress-bar" style="width:0%"></div></div>
+
+<div class="shell">
+
+  <!-- ── Step 0: Welcome ─────────────────────── -->
+  <div class="step active" id="step-0">
+    <div class="logo-mark">🌀</div>
+    <div>
+      <h1>Hey, welcome.</h1>
+      <p class="sub" style="margin-top:10px">
+        You've found Columbus on the Spectrum — a space for autistic and neurodivergent adults to connect, create, and just be.
+      </p>
+    </div>
+    <p class="sub">
+      This takes about <strong>60 seconds</strong> to fill out. We'll grab a few basics so we can get to know you.
+    </p>
+    <button class="btn-primary" onclick="goTo(1)">Let's go →</button>
+    <p class="footer-note">Your info is only shared with COTS facilitators and is never sold.</p>
+  </div>
+
+  <!-- ── Step 1: Name ─────────────────────────── -->
+  <div class="step" id="step-1">
+    <button class="btn-back" onclick="goTo(0)">← Back</button>
+    <div>
+      <span class="step-label">Step 1 of 4</span>
+      <h2 style="margin-top:6px">What's your name?</h2>
+    </div>
+    <div class="field-group">
+      <div class="field-wrap">
+        <label for="first">First name</label>
+        <input type="text" id="first" placeholder="First" autocomplete="given-name" inputmode="text">
+        <span class="field-error" id="err-first">Please enter your first name.</span>
+      </div>
+      <div class="field-wrap">
+        <label for="last">Last name</label>
+        <input type="text" id="last" placeholder="Last" autocomplete="family-name" inputmode="text">
+        <span class="field-error" id="err-last">Please enter your last name.</span>
+      </div>
+      <div class="field-wrap">
+        <label for="preferred">What should we call you? <span class="opt">(optional)</span></label>
+        <input type="text" id="preferred" placeholder="Nickname, preferred name, etc." autocomplete="nickname">
+      </div>
+    </div>
+    <button class="btn-primary" onclick="validateName()">Continue →</button>
+  </div>
+
+  <!-- ── Step 2: Pronouns ─────────────────────── -->
+  <div class="step" id="step-2">
+    <button class="btn-back" onclick="goTo(1)">← Back</button>
+    <div>
+      <span class="step-label">Step 2 of 4</span>
+      <h2 style="margin-top:6px">Your pronouns</h2>
+      <p class="sub" style="margin-top:8px">Tap one — or skip if you'd rather not say.</p>
+    </div>
+    <div class="chip-grid">
+      <div class="chip" onclick="selectPronoun(this,'he/him')">he / him</div>
+      <div class="chip" onclick="selectPronoun(this,'she/her')">she / her</div>
+      <div class="chip" onclick="selectPronoun(this,'they/them')">they / them</div>
+      <div class="chip" onclick="selectPronoun(this,'other / ask me')">other /<br>ask me</div>
+    </div>
+    <button class="btn-primary" onclick="goTo(3)">Continue →</button>
+    <button class="btn-back" style="align-self:center;color:var(--muted)" onclick="skipPronoun()">Skip this step</button>
+  </div>
+
+  <!-- ── Step 3: Contact ─────────────────────── -->
+  <div class="step" id="step-3">
+    <button class="btn-back" onclick="goTo(2)">← Back</button>
+    <div>
+      <span class="step-label">Step 3 of 4</span>
+      <h2 style="margin-top:6px">How can we reach you?</h2>
+      <p class="sub" style="margin-top:8px">We only message about COTS stuff. No spam, ever.</p>
+    </div>
+    <div class="field-group">
+      <div class="field-wrap">
+        <label for="phone">Phone number <span class="opt">(optional)</span></label>
+        <input type="tel" id="phone" placeholder="(614) 000-0000" autocomplete="tel" inputmode="tel">
+        <span class="field-error" id="err-phone">Please enter a valid phone number.</span>
+      </div>
+      <div class="field-wrap">
+        <label for="email">Email address</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email" inputmode="email" oninput="checkEmailMatch()">
+        <span class="field-error" id="err-email">Please enter a valid email.</span>
+      </div>
+      <div class="field-wrap">
+        <label for="email2">Confirm email</label>
+        <input type="email" id="email2" placeholder="Same email again" inputmode="email" oninput="checkEmailMatch()">
+        <span class="field-error" id="err-email2">Emails don't match.</span>
+        <span class="verify-badge" id="email-ok" style="display:none">✓ Emails match</span>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="validateContact()">Continue →</button>
+  </div>
+
+  <!-- ── Step 4: How heard ─────────────────────── -->
+  <div class="step" id="step-4">
+    <button class="btn-back" onclick="goTo(3)">← Back</button>
+    <div>
+      <span class="step-label">Step 4 of 4</span>
+      <h2 style="margin-top:6px">How'd you find out about us?</h2>
+    </div>
+    <div class="heard-grid">
+      <div class="heard-chip" onclick="selectHeard(this,'Word of mouth')">
+        <span class="icon">🗣️</span> Word of mouth <div class="check">✓</div>
+      </div>
+      <div class="heard-chip" onclick="selectHeard(this,'Social media')">
+        <span class="icon">📱</span> Social media <div class="check">✓</div>
+      </div>
+      <div class="heard-chip" onclick="selectHeard(this,'Therapist / provider')">
+        <span class="icon">🩺</span> Therapist / provider <div class="check">✓</div>
+      </div>
+      <div class="heard-chip" onclick="selectHeard(this,'School or program')">
+        <span class="icon">🏫</span> School or program <div class="check">✓</div>
+      </div>
+      <div class="heard-chip" onclick="selectHeard(this,'Flyer or poster')">
+        <span class="icon">📋</span> Flyer or poster <div class="check">✓</div>
+      </div>
+      <div class="heard-chip" onclick="selectHeard(this,'Other')">
+        <span class="icon">✨</span> Other / not sure <div class="check">✓</div>
+      </div>
+    </div>
+    <span class="field-error" id="err-heard" style="display:none">Please pick one.</span>
+    <button class="btn-primary" onclick="validateHeard()">Submit →</button>
+  </div>
+
+  <!-- ── Step 5: Done ─────────────────────────── -->
+  <div class="step" id="step-5">
+    <div class="success-ring">✓</div>
+    <div>
+      <h2 id="done-name">You're checked in!</h2>
+      <p class="sub" style="margin-top:8px">
+        Glad you're here. Find a seat, grab a snack if there is one, and just let tonight unfold at your own pace.
+      </p>
+    </div>
+    <div class="summary-card" id="summary-card"></div>
+    <p class="hint" style="text-align:center">
+      A facilitator will come say hi when you're settled. No pressure to jump in — just be here. 🌀
+    </p>
+  </div>
+
+</div><!-- /shell -->
+
+<script>
+const STEPS = 6;
+let data = { pronouns: null, heard: null };
+
+function setProgress(step) {
+  const pct = step === 0 ? 0 : Math.round((step / 5) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+function goTo(n) {
+  const cur = document.querySelector('.step.active');
+  if (!cur) return;
+  cur.classList.remove('active');
+  cur.classList.add('leaving');
+  setTimeout(() => cur.classList.remove('leaving'), 300);
+  const next = document.getElementById('step-' + n);
+  if (next) {
+    next.classList.add('active');
+    setProgress(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// ── Name ────────────────────────────────────────
+function validateName() {
+  const first = document.getElementById('first').value.trim();
+  const last  = document.getElementById('last').value.trim();
+  let ok = true;
+  toggleError('first', !first);
+  toggleError('last', !last);
+  if (!first || !last) return;
+  data.first = first;
+  data.last  = last;
+  data.preferred = document.getElementById('preferred').value.trim();
+  goTo(2);
+}
+
+// ── Pronouns ─────────────────────────────────────
+function selectPronoun(el, val) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  data.pronouns = val;
+}
+function skipPronoun() {
+  data.pronouns = null;
+  goTo(3);
+}
+
+// ── Contact ──────────────────────────────────────
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function isValidPhone(p) { return p === '' || /^[\d\s\-\+\(\)\.]{7,15}$/.test(p); }
+
+function checkEmailMatch() {
+  const e1 = document.getElementById('email').value.trim();
+  const e2 = document.getElementById('email2').value.trim();
+  const badge = document.getElementById('email-ok');
+  if (e1 && e2 && e1 === e2 && isValidEmail(e1)) {
+    badge.style.display = 'inline-flex';
+    document.getElementById('err-email2').classList.remove('show');
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function validateContact() {
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const email2 = document.getElementById('email2').value.trim();
+  let ok = true;
+
+  if (phone && !isValidPhone(phone)) {
+    toggleError('phone', true); ok = false;
+  } else { toggleError('phone', false); }
+
+  if (!isValidEmail(email)) {
+    toggleError('email', true); ok = false;
+  } else { toggleError('email', false); }
+
+  if (email !== email2 || !isValidEmail(email2)) {
+    toggleError('email2', true); ok = false;
+  } else { toggleError('email2', false); }
+
+  if (!ok) return;
+  data.phone = phone;
+  data.email = email;
+  goTo(4);
+}
+
+// ── How heard ────────────────────────────────────
+function selectHeard(el, val) {
+  document.querySelectorAll('.heard-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  data.heard = val;
+  document.getElementById('err-heard').style.display = 'none';
+}
+
+function validateHeard() {
+  if (!data.heard) {
+    document.getElementById('err-heard').style.display = 'block';
+    return;
+  }
+  submitForm();
+}
+
+// ── Backend URL ────────────────────────────────────────────────────────────
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyiXFb0e9yJ4N-0ezePGF3FvOBKHYfRl7I9c_GTK0NcQAwofFqawcGl9qrZ4edjiuSCPA/exec';
+
+// ── Submit ───────────────────────────────────────
+async function submitForm() {
+  data.timestamp  = new Date().toISOString();
+  data.meetingDate = new URLSearchParams(window.location.search).get('date') || '';
+
+  const btn = document.querySelector('#step-4 .btn-primary');
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  let saved = false;
+  if (BACKEND_URL && BACKEND_URL !== 'PASTE_YOUR_URL_HERE') {
+    try {
+      await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(data),
+        mode: 'no-cors',
+      });
+      saved = true;
+    } catch(err) {
+      console.warn('[COTS] Backend unreachable:', err);
+    }
+  }
+
+  try {
+    const key = 'cots_checkins';
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    existing.push({ ...data, _savedToSheets: saved });
+    localStorage.setItem(key, JSON.stringify(existing));
+  } catch(e) {}
+
+  btn.disabled = false;
+  btn.textContent = origText;
+
+  const card = document.getElementById('summary-card');
+  const rows = [
+    ['Name', data.preferred
+      ? data.first + ' ' + data.last + ' (' + data.preferred + ')'
+      : data.first + ' ' + data.last],
+    ['Pronouns', data.pronouns || '—'],
+    ['Email', data.email],
+    ['Phone', data.phone || '—'],
+    ['Found us via', data.heard],
+  ];
+  card.innerHTML = rows.map((r, i) =>
+    (i > 0 ? '<div class="divider"></div>' : '') +
+    '<div class="summary-row"><span class="key">' + r[0] + '</span><span class="val">' + r[1] + '</span></div>'
+  ).join('');
+
+  document.getElementById('done-name').textContent = "You're in, " + data.first + "! 🎉";
+  goTo(5);
+}
+
+// ── Helpers ──────────────────────────────────────
+function toggleError(id, show) {
+  const input = document.getElementById(id);
+  const err   = document.getElementById('err-' + id);
+  if (!input || !err) return;
+  input.classList.toggle('error', show);
+  err.classList.toggle('show', show);
+}
+</script>
+</body>
+</html>
