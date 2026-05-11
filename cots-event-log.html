@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>COTS Event Log</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --attendance:  #2ecc71;
+      --new-member:  #3498db;
+      --family:      #9b59b6;
+      --flag:        #e74c3c;
+      --followup:    #f39c12;
+      --note:        #607d8b;
+      --bg:          #0f1117;
+      --surface:     #1a1d26;
+      --surface2:    #22263a;
+      --text:        #f0f0f0;
+      --muted:       #888;
+      --radius:      14px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── SCREENS ── */
+    .screen { display: none; flex-direction: column; min-height: 100vh; padding: 20px 16px 40px; }
+    .screen.active { display: flex; }
+
+    /* ── SESSION SETUP ── */
+    #screen-setup { justify-content: center; gap: 24px; }
+    .setup-logo {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .setup-logo h1 { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.5px; }
+    .setup-logo p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+
+    label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 6px; }
+
+    input[type="date"], input[type="text"], textarea, select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    input[type="date"]:focus,
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus { border-color: #555; }
+
+    textarea { resize: none; min-height: 110px; line-height: 1.5; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      color: #fff;
+      background: #2a2d3e;
+      letter-spacing: 0.02em;
+    }
+    .btn-primary:active { transform: scale(0.97); opacity: 0.85; }
+    .btn-primary.go { background: linear-gradient(135deg, #3498db, #2ecc71); }
+
+    /* ── HUB ── */
+    #screen-hub { gap: 0; }
+
+    .hub-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .hub-header h2 { font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
+    .hub-header .sub { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+    .hub-header .btn-end {
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    .entry-count {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .entry-count span { color: var(--text); font-weight: 600; }
+
+    .node-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .node {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px 14px 16px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.12s, opacity 0.12s;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      min-height: 110px;
+    }
+    .node:active { transform: scale(0.96); opacity: 0.9; }
+    .node::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.08;
+    }
+    .node .icon { font-size: 1.7rem; line-height: 1; }
+    .node .label { font-size: 0.88rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+    .node .hint { font-size: 0.72rem; color: var(--muted); line-height: 1.3; }
+    .node .badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      color: #fff;
+    }
+
+    .node[data-type="attendance"]  { --c: var(--attendance); border-color: #2ecc7133; }
+    .node[data-type="new-member"]  { --c: var(--new-member);  border-color: #3498db33; }
+    .node[data-type="family"]      { --c: var(--family);      border-color: #9b59b633; }
+    .node[data-type="flag"]        { --c: var(--flag);        border-color: #e74c3c33; }
+    .node[data-type="followup"]    { --c: var(--followup);    border-color: #f39c1233; }
+    .node[data-type="note"]        { --c: var(--note);        border-color: #607d8b33; }
+    .node::before { background: var(--c); }
+    .node .icon { color: var(--c); }
+    .node .label { color: var(--c); }
+    .node .badge { background: var(--c); }
+
+    /* ── ENTRY FORM ── */
+    #screen-entry { gap: 20px; }
+
+    .entry-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 4px;
+    }
+    .entry-header .back {
+      width: 36px; height: 36px;
+      background: var(--surface2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      border: 1px solid #333;
+    }
+    .entry-header .type-icon { font-size: 1.6rem; line-height: 1; }
+    .entry-header h3 { font-size: 1.1rem; font-weight: 700; }
+    .entry-header .type-label { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1px solid #333;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill.selected { border-color: var(--active-color, #888); color: var(--active-color, #888); background: var(--surface); }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--submit-color, #3498db);
+      letter-spacing: 0.02em;
+      transition: opacity 0.15s, transform 0.1s;
+      margin-top: auto;
+    }
+    .btn-submit:active { transform: scale(0.97); opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1e2230;
+      border: 1px solid #333;
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.25s;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── SUMMARY SHEET ── */
+    #screen-summary { gap: 16px; }
+    #screen-summary h2 { font-size: 1.3rem; font-weight: 700; }
+    .summary-event { font-size: 0.85rem; color: var(--muted); margin-top: -8px; }
+    .summary-list { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+    .summary-item {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 12px 14px;
+      border-left: 3px solid var(--c, #555);
+    }
+    .summary-item .si-type { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .summary-item .si-body { font-size: 0.88rem; line-height: 1.45; color: var(--text); }
+    .summary-item[data-type="attendance"]  { --c: var(--attendance); }
+    .summary-item[data-type="new-member"]  { --c: var(--new-member);  }
+    .summary-item[data-type="family"]      { --c: var(--family);      }
+    .summary-item[data-type="flag"]        { --c: var(--flag);        }
+    .summary-item[data-type="followup"]    { --c: var(--followup);    }
+    .summary-item[data-type="note"]        { --c: var(--note);        }
+    .empty-state { color: var(--muted); font-size: 0.9rem; text-align: center; margin-top: 40px; }
+  </style>
+</head>
+<body>
+
+<!-- ── SCREEN: SETUP ── -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-logo">
+    <h1>COTS</h1>
+    <p>Event Log</p>
+  </div>
+
+  <div class="field-group">
+    <label>Date</label>
+    <input type="date" id="setup-date">
+  </div>
+
+  <div class="field-group">
+    <label>Event / Venue</label>
+    <input type="text" id="setup-venue" placeholder="e.g. Trivia at Derive">
+  </div>
+
+  <button class="btn-primary go" id="btn-start">Start Logging →</button>
+</div>
+
+
+<!-- ── SCREEN: HUB ── -->
+<div id="screen-hub" class="screen">
+  <div class="hub-header">
+    <div>
+      <h2 id="hub-venue">—</h2>
+      <div class="sub" id="hub-date">—</div>
+    </div>
+    <button class="btn-end" id="btn-view-summary">View log</button>
+  </div>
+
+  <div class="entry-count">
+    <span id="hub-count">0</span> entries this session
+  </div>
+
+  <div class="node-grid">
+    <div class="node" data-type="attendance">
+      <div class="icon">👥</div>
+      <div>
+        <div class="label">Attendance</div>
+        <div class="hint">Who showed up</div>
+      </div>
+      <div class="badge" id="badge-attendance" style="display:none">0</div>
+    </div>
+    <div class="node" data-type="new-member">
+      <div class="icon">✨</div>
+      <div>
+        <div class="label">New Member</div>
+        <div class="hint">First or second timer</div>
+      </div>
+      <div class="badge" id="badge-new-member" style="display:none">0</div>
+    </div>
+    <div class="node" data-type="family">
+      <div class="icon">👨‍👩‍👦</div>
+      <div>
+        <div class="label">Family / Caretaker</div>
+        <div class="hint">Contact info, context</div>
+      </div>
+      <div class="badge" id="badge-family" style="display:none">0</div>
+    </div>
+    <div class="node" data-type="flag">
+      <div class="icon">⚑</div>
+      <div>
+        <div class="label">Behavioral Flag</div>
+        <div class="hint">Observable incident</div>
+      </div>
+      <div class="badge" id="badge-flag" style="display:none">0</div>
+    </div>
+    <div class="node" data-type="followup">
+      <div class="icon">📌</div>
+      <div>
+        <div class="label">Follow-up for Max</div>
+        <div class="hint">Action or decision needed</div>
+      </div>
+      <div class="badge" id="badge-followup" style="display:none">0</div>
+    </div>
+    <div class="node" data-type="note">
+      <div class="icon">💬</div>
+      <div>
+        <div class="label">General Note</div>
+        <div class="hint">Anything else</div>
+      </div>
+      <div class="badge" id="badge-note" style="display:none">0</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── SCREEN: ENTRY FORM ── -->
+<div id="screen-entry" class="screen">
+  <div class="entry-header">
+    <div class="back" id="btn-back">←</div>
+    <div class="type-icon" id="entry-icon"></div>
+    <div>
+      <div id="entry-title" style="font-size:1.1rem;font-weight:700;"></div>
+      <div class="type-label" id="entry-context"></div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE -->
+  <div id="form-attendance" class="entry-form" style="display:none; flex-direction:column; gap:18px;">
+    <div class="field-group">
+      <label>Returning members (names you know)</label>
+      <textarea id="att-returning" placeholder="e.g. Marcus, Owen, Elias, Ben&#10;Don't stress completeness"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Rough total count</label>
+      <input type="text" id="att-count" placeholder="e.g. 11">
+    </div>
+    <div class="field-group">
+      <label>Vibe / energy level</label>
+      <div class="pill-row" id="att-vibe">
+        <div class="pill" data-val="low-key">Low-key</div>
+        <div class="pill" data-val="good-energy">Good energy</div>
+        <div class="pill" data-val="loud">Loud</div>
+        <div class="pill" data-val="small-group">Small group</div>
+        <div class="pill" data-val="big-turnout">Big turnout</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW MEMBER -->
+  <div id="form-new-member" class="entry-form" style="display:none; flex-direction:column; gap:18px;">
+    <div class="field-group">
+      <label>Name</label>
+      <input type="text" id="nm-name" placeholder="First name (+ last if you caught it)">
+    </div>
+    <div class="field-group">
+      <label>Times attended</label>
+      <div class="pill-row" id="nm-times">
+        <div class="pill" data-val="first">1st time</div>
+        <div class="pill" data-val="second">2nd time</div>
+        <div class="pill" data-val="third-plus">3rd+</div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Context / notes</label>
+      <textarea id="nm-notes" placeholder="Age range, how they found us, who they came with, anything that felt notable"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Came with / referred by</label>
+      <input type="text" id="nm-referral" placeholder="e.g. came with Carson, found us on Discord">
+    </div>
+  </div>
+
+  <!-- FAMILY / CARETAKER -->
+  <div id="form-family" class="entry-form" style="display:none; flex-direction:column; gap:18px;">
+    <div class="field-group">
+      <label>COTS member they're connected to</label>
+      <input type="text" id="fc-member" placeholder="Member's first name">
+    </div>
+    <div class="field-group">
+      <label>Contact name</label>
+      <input type="text" id="fc-name" placeholder="e.g. Jodi (Isaac's mom)">
+    </div>
+    <div class="field-group">
+      <label>Relation</label>
+      <div class="pill-row" id="fc-relation">
+        <div class="pill" data-val="parent">Parent</div>
+        <div class="pill" data-val="caretaker">Caretaker</div>
+        <div class="pill" data-val="sibling">Sibling</div>
+        <div class="pill" data-val="partner">Partner</div>
+        <div class="pill" data-val="other">Other</div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Notes</label>
+      <textarea id="fc-notes" placeholder="Anything relevant — concerns raised, info shared, follow-up needed"></textarea>
+    </div>
+  </div>
+
+  <!-- BEHAVIORAL FLAG -->
+  <div id="form-flag" class="entry-form" style="display:none; flex-direction:column; gap:18px;">
+    <div class="field-group">
+      <label>Member (if known)</label>
+      <input type="text" id="fl-member" placeholder="First name, or 'unknown'">
+    </div>
+    <div class="field-group">
+      <label>What happened — stick to observable facts</label>
+      <textarea id="fl-what" placeholder="e.g. approached female patrons outside the group x2, redirected to group both times"></textarea>
+    </div>
+    <div class="field-group">
+      <label>How it was handled</label>
+      <textarea id="fl-handled" placeholder="e.g. verbal redirect, pulled aside for brief conversation, no further incident"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Needs Max's attention?</label>
+      <div class="pill-row" id="fl-urgent">
+        <div class="pill" data-val="yes-soon">Yes — flag soon</div>
+        <div class="pill" data-val="fyi">FYI only</div>
+        <div class="pill" data-val="handled">Handled, just logging</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOLLOW-UP FOR MAX -->
+  <div id="form-followup" class="entry-form" style="display:none; flex-direction:column; gap:18px;">
+    <div class="field-group">
+      <label>What needs to happen</label>
+      <textarea id="fu-what" placeholder="Be specific — who, what, by when if relevant"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Urgency</label>
+      <div class="pill-row" id="fu-urgency">
+        <div class="pill" data-val="asap">ASAP</div>
+        <div class="pill" data-val="this-week">This week</div>
+        <div class="pill" data-val="whenever">Whenever</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERAL NOTE -->
+  <div id="form-note" class="entry-form" style="display:none; flex-direction:column; gap:18px;">
+    <div class="field-group">
+      <label>Note</label>
+      <textarea id="gn-text" placeholder="Anything that doesn't fit the other categories" style="min-height:160px;"></textarea>
+    </div>
+  </div>
+
+  <button class="btn-submit" id="btn-submit" style="margin-top:auto;">Save Entry</button>
+</div>
+
+
+<!-- ── SCREEN: SUMMARY ── -->
+<div id="screen-summary" class="screen">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="back" id="btn-back-summary">←</div>
+    <div>
+      <h2>Session Log</h2>
+      <div class="summary-event" id="summary-event">—</div>
+    </div>
+  </div>
+  <div class="summary-list" id="summary-list">
+    <div class="empty-state">No entries yet.</div>
+  </div>
+  <button class="btn-primary" id="btn-end-session" style="background:#1e2230;color:#333;border:1px solid #2a2d3e;">
+    End session &amp; submit all
+  </button>
+</div>
+
+
+<div id="toast"></div>
+
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+// After deploying the Apps Script web app, paste its URL here:
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNI9MMP_RIq9l_fg7JkeiMLulFe2F1DJ6EDZPco7hn15-fGmwc2rXm1Zhy4Eo0gus-/exec';
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+const state = {
+  date: '',
+  venue: '',
+  entries: [],        // { type, data, timestamp }
+  activeType: null,
+};
+
+// ── NODE METADATA ─────────────────────────────────────────────────────────
+const nodes = {
+  'attendance':  { icon: '👥', label: 'Attendance',          color: '#2ecc71' },
+  'new-member':  { icon: '✨', label: 'New Member',          color: '#3498db' },
+  'family':      { icon: '👨‍👩‍👦', label: 'Family / Caretaker', color: '#9b59b6' },
+  'flag':        { icon: '⚑',  label: 'Behavioral Flag',     color: '#e74c3c' },
+  'followup':    { icon: '📌', label: 'Follow-up for Max',   color: '#f39c12' },
+  'note':        { icon: '💬', label: 'General Note',        color: '#607d8b' },
+};
+
+// ── SCREEN NAV ───────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ── SETUP ────────────────────────────────────────────────────────────────
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('setup-date').value = today;
+
+document.getElementById('btn-start').addEventListener('click', () => {
+  const date  = document.getElementById('setup-date').value;
+  const venue = document.getElementById('setup-venue').value.trim();
+  if (!date || !venue) { toast('Enter a date and venue first'); return; }
+  state.date  = date;
+  state.venue = venue;
+  const pretty = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  document.getElementById('hub-venue').textContent = venue;
+  document.getElementById('hub-date').textContent  = pretty;
+  updateHubCount();
+  show('hub');
+});
+
+// ── HUB ──────────────────────────────────────────────────────────────────
+document.querySelectorAll('.node').forEach(node => {
+  node.addEventListener('click', () => openEntry(node.dataset.type));
+});
+
+document.getElementById('btn-view-summary').addEventListener('click', () => {
+  renderSummary();
+  show('summary');
+});
+
+function updateHubCount() {
+  const total = state.entries.length;
+  document.getElementById('hub-count').textContent = total;
+  // update badges
+  Object.keys(nodes).forEach(type => {
+    const count = state.entries.filter(e => e.type === type).length;
+    const badge = document.getElementById('badge-' + type);
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'block' : 'none';
+    }
+  });
+  updateSubmitButtonColor(total);
+}
+
+function updateSubmitButtonColor(count) {
+  const btn = document.getElementById('btn-end-session');
+  if (count === 0) {
+    btn.style.background = '#1e2230';
+    btn.style.color = '#333';
+    btn.style.border = '1px solid #2a2d3e';
+    return;
+  }
+  // Ramp from 1 entry (faint green) to 6+ entries (full green)
+  const t = Math.min(count / 6, 1);
+  const bgAlpha   = (0.08 + t * 0.22).toFixed(2);
+  const textAlpha = (0.4  + t * 0.6).toFixed(2);
+  const bdrAlpha  = (0.15 + t * 0.35).toFixed(2);
+  btn.style.background = `rgba(46, 204, 113, ${bgAlpha})`;
+  btn.style.color      = `rgba(46, 204, 113, ${textAlpha})`;
+  btn.style.border     = `1px solid rgba(46, 204, 113, ${bdrAlpha})`;
+}
+
+// ── ENTRY FORM ───────────────────────────────────────────────────────────
+function openEntry(type) {
+  state.activeType = type;
+  const meta = nodes[type];
+
+  // clear all forms
+  document.querySelectorAll('.entry-form').forEach(f => f.style.display = 'none');
+  clearForm(type);
+
+  const form = document.getElementById('form-' + type);
+  if (form) form.style.display = 'flex';
+
+  document.getElementById('entry-icon').textContent  = meta.icon;
+  document.getElementById('entry-title').textContent = meta.label;
+  document.getElementById('entry-title').style.color = meta.color;
+  document.getElementById('entry-context').textContent = state.venue + ' · ' + formatDate(state.date);
+  document.getElementById('btn-submit').style.background = meta.color;
+  document.querySelector(':root').style.setProperty('--active-color', meta.color);
+  document.querySelector(':root').style.setProperty('--submit-color', meta.color);
+
+  show('entry');
+}
+
+document.getElementById('btn-back').addEventListener('click', () => show('hub'));
+
+document.getElementById('btn-submit').addEventListener('click', saveEntry);
+
+function saveEntry() {
+  const type = state.activeType;
+  let data = {};
+
+  if (type === 'attendance') {
+    data = {
+      returning: document.getElementById('att-returning').value.trim(),
+      count:     document.getElementById('att-count').value.trim(),
+      vibe:      getSelectedPill('att-vibe'),
+    };
+    if (!data.returning && !data.count) { toast('Add at least who was there'); return; }
+  }
+  else if (type === 'new-member') {
+    data = {
+      name:     document.getElementById('nm-name').value.trim(),
+      times:    getSelectedPill('nm-times'),
+      notes:    document.getElementById('nm-notes').value.trim(),
+      referral: document.getElementById('nm-referral').value.trim(),
+    };
+    if (!data.name) { toast('Enter a name'); return; }
+  }
+  else if (type === 'family') {
+    data = {
+      member:   document.getElementById('fc-member').value.trim(),
+      name:     document.getElementById('fc-name').value.trim(),
+      relation: getSelectedPill('fc-relation'),
+      notes:    document.getElementById('fc-notes').value.trim(),
+    };
+    if (!data.name) { toast('Enter the contact name'); return; }
+  }
+  else if (type === 'flag') {
+    data = {
+      member:  document.getElementById('fl-member').value.trim(),
+      what:    document.getElementById('fl-what').value.trim(),
+      handled: document.getElementById('fl-handled').value.trim(),
+      urgent:  getSelectedPill('fl-urgent'),
+    };
+    if (!data.what) { toast('Describe what happened'); return; }
+  }
+  else if (type === 'followup') {
+    data = {
+      what:    document.getElementById('fu-what').value.trim(),
+      urgency: getSelectedPill('fu-urgency'),
+    };
+    if (!data.what) { toast('Describe what needs to happen'); return; }
+  }
+  else if (type === 'note') {
+    data = { text: document.getElementById('gn-text').value.trim() };
+    if (!data.text) { toast('Nothing written yet'); return; }
+  }
+
+  state.entries.push({ type, data, timestamp: new Date().toISOString() });
+  updateHubCount();
+  toast(nodes[type].icon + ' Saved');
+  show('hub');
+}
+
+// ── SUMMARY ──────────────────────────────────────────────────────────────
+document.getElementById('btn-back-summary').addEventListener('click', () => show('hub'));
+
+function renderSummary() {
+  document.getElementById('summary-event').textContent = state.venue + ' · ' + formatDate(state.date);
+  const list = document.getElementById('summary-list');
+
+  if (state.entries.length === 0) {
+    list.innerHTML = '<div class="empty-state">No entries yet.</div>';
+    return;
+  }
+
+  list.innerHTML = state.entries.map(e => {
+    const meta = nodes[e.type];
+    const body = entryToText(e);
+    return `<div class="summary-item" data-type="${e.type}">
+      <div class="si-type">${meta.icon} ${meta.label}</div>
+      <div class="si-body">${body}</div>
+    </div>`;
+  }).join('');
+}
+
+function entryToText(e) {
+  const d = e.data;
+  if (e.type === 'attendance') {
+    let lines = [];
+    if (d.count)     lines.push('Count: ' + d.count);
+    if (d.returning) lines.push('Returning: ' + d.returning);
+    if (d.vibe)      lines.push('Vibe: ' + d.vibe);
+    return lines.join('<br>');
+  }
+  if (e.type === 'new-member') {
+    let lines = [d.name];
+    if (d.times)    lines.push(d.times);
+    if (d.referral) lines.push('Via: ' + d.referral);
+    if (d.notes)    lines.push(d.notes);
+    return lines.join(' · ');
+  }
+  if (e.type === 'family') {
+    let lines = [(d.name || '') + (d.relation ? ' (' + d.relation + ')' : '')];
+    if (d.member) lines.push('→ ' + d.member + '\'s contact');
+    if (d.notes)  lines.push(d.notes);
+    return lines.join('<br>');
+  }
+  if (e.type === 'flag') {
+    let lines = [];
+    if (d.member)  lines.push('<strong>' + d.member + '</strong>');
+    if (d.what)    lines.push(d.what);
+    if (d.handled) lines.push('Handled: ' + d.handled);
+    if (d.urgent)  lines.push('→ ' + d.urgent);
+    return lines.join('<br>');
+  }
+  if (e.type === 'followup') {
+    return d.what + (d.urgency ? ' <em>(' + d.urgency + ')</em>' : '');
+  }
+  if (e.type === 'note') return d.text;
+  return JSON.stringify(d);
+}
+
+// ── SUBMIT SESSION ────────────────────────────────────────────────────────
+document.getElementById('btn-end-session').addEventListener('click', () => {
+  if (state.entries.length === 0) { toast('Nothing to submit'); return; }
+
+  const btn = document.getElementById('btn-end-session');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  const payload = {
+    date:    state.date,
+    venue:   state.venue,
+    entries: state.entries,
+  };
+
+  if (SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    // Dev mode: just log to console and confirm
+    console.log('Payload:', JSON.stringify(payload, null, 2));
+    toast('✓ Submitted (dev mode — no backend yet)');
+    btn.disabled = false;
+    btn.textContent = 'End session & submit all';
+    return;
+  }
+
+  // Apps Script blocks JSON responses cross-origin, so send as text/plain + no-cors.
+  // The sheet still receives everything; we just don't get a response body back.
+  fetch(SCRIPT_URL, {
+    method:  'POST',
+    mode:    'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body:    JSON.stringify(payload),
+  })
+  .then(() => {
+    toast('✓ Entries saved to sheet');
+    state.entries = [];
+    updateHubCount();
+    renderSummary();
+    btn.disabled = false;
+    btn.textContent = 'End session & submit all';
+  })
+  .catch(() => {
+    toast('Network error — check connection');
+    btn.disabled = false;
+    btn.textContent = 'End session & submit all';
+  });
+});
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function getSelectedPill(groupId) {
+  const selected = document.querySelector('#' + groupId + ' .pill.selected');
+  return selected ? selected.dataset.val : '';
+}
+
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('pill')) {
+    const group = e.target.closest('.pill-row');
+    group.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+    e.target.classList.add('selected');
+  }
+});
+
+function clearForm(type) {
+  const form = document.getElementById('form-' + type);
+  if (!form) return;
+  form.querySelectorAll('input, textarea').forEach(el => el.value = '');
+  form.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+}
+
+function formatDate(iso) {
+  return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
