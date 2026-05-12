@@ -366,13 +366,13 @@
   <div class="success-icon">âœ“</div>
   <div class="success-msg">
     <h2 id="success-name">You're checked in!</h2>
-    <p id="succest-sub">Thanks for being here. Enjoy the meetup!</p>
+    <p id="success-sub">Thanks for being here. Enjoy the meetup!</p>
   </div>
   <button class="btn-reset" onclick="reset()">Check in another person</button>
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNI9MMP_RIq9l_fg7JkeiMLulFe2F1DJ6EDZPco7hn15-fGmwc2rXm1Zhy4Eo0gus-/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoAKRqFs_wG-xgQJRwWqGUiLEzaRyzZHOjf0vYW0pFbSRWgrMRk-jVqxMI_m2k6eki/exec';
 
   function show(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -390,63 +390,60 @@
   }
 
   function success(name, sub) {
-    document.getElementById('success-name').textContent = name;
-    document.getElementById('success-sub').textContent  = sub;
-    show('screen-success');
-  }
+    document.getElementById('success-name').textContent = nbˆØİ[Y[™Ù][[Y[RY
+	ÜİXØÙ\ÜË\İX‰ÊK^ÛÛ[HİXÂˆÚİÊ	ÜØÜ™Y[‹\İXØÙ\ÜÉÊNÂˆB‚ˆÊˆ8¥ 8¥ ‘UT“’S‘ÈQSP‘Tˆ8¥ 8¥ 
+‹Âˆ[˜İ[ÛˆİX›Z]™]\›š[™Ê
+HÂˆÛÛœİš\œİHØİ[Y[™Ù][[Y[RY
+	Ü™]Yš\œİ	ÊK˜[YKš[J
+NÂˆÛÛœİ\İHØİ[Y[™Ù][[Y[RY
+	Ü™][\İ	ÊK˜[YKš[J
+NÂˆÛÛœİ\œˆHØİ[Y[™Ù][[Y[RY
+	Ü™]Y\œ›Ü‰ÊNÂˆYˆ
+Yš\œİ[\İ
+HÈ\œ‹^ÛÛ[H	ÔX\ÙH[\ˆ[İ\ˆš\œİ[™\İ˜[YK‰ÎÈ™]\›ÈBˆ\œ‹^ÛÛ[H	ÉÎÂˆÜİ
+ÈÚXÚÚ[•\Nˆ	Ü™]\›š[™ÉË[Y\İ[\ˆ™]È]J
+KÒTÓÔİš[™Ê
+Kš\œİ˜[YNˆš\œİ\İ˜[YNˆ\İJBˆ[Š
 
-  /* â”€â”€ RETURNING MEMBER â”€â”€ */
-  function submitReturning() {
-    const first = document.getElementById('ret-first').value.trim();
-    const last  = document.getElementById('ret-last').value.trim();
-    const err   = document.getElementById('ret-error');
-    if (!first || !last) { err.textContent = 'Please enter your first and last name.'; return; }
-    err.textContent = '';
-    post({ checkinType: 'returning', timestamp: new Date().toISOString(), firstName: first, lastName: last })
-      .then(() => success('See you inside, ' + first + '!', 'Thanks for checking in. Enjoy the meetup!'));
-  }
+HOˆİXØÙ\ÜÊ	ÔÙYH[İH[œÚYK	È
+Èš\œİ
+È	ÈIË	Õ[šÜÈ›ÜˆÚXÚÚ[™È[‹ˆ[š›ŞHHYY]\IÊJNÂˆB‚ˆÊˆ8¥ 8¥ ĞT‘URÑTˆÈÕTÔ•T”ÓÓˆ8¥ 8¥ 
+‹Âˆ[˜İ[ÛˆİX›Z]Ø\™]ZÙ\Š
+HÂˆÛÛœİY[X™\‘š\œİHØİ[Y[™Ù][[Y[RY
+	Øİ[Y[X™\‹Yš\œİ	ÊK˜[YKš[J
+NÂˆÛÛœİY[X™\“\İHØİ[Y[™Ù][[Y[RY
+	Øİ[Y[X™\‹[\İ	ÊK˜[YKš[J
+NÂˆÛÛœİİš\œİHØİ[Y[™Ù][[Y[RY
+	ØİYš\œİ	ÊK˜[YKš[J
+NÂˆÛÛœİİ\İHØİ[Y[™Ù][[Y[RY
+	Øİ[\İ	ÊK˜[YKš[J
+NÂˆÛÛœİİÛ™HHØİ[Y[™Ù][[Y[RY
+	Øİ\Û™IÊK˜[YKš[J
+NÂˆÛÛœİİ›İ\ÈHØİ[Y[™Ù][[Y[RY
+	Øİ[›İ\ÉÊK˜[YKš[J
+NÂˆÛÛœİ\œˆHØİ[Y[™Ù][[Y[RY
+	ØİY\œ›Ü‰ÊNÂˆYˆ
+Xİš\œİXİ\İXİÛ™JHÂˆ\œ‹^ÛÛ[H	ÔX\ÙH[\ˆ[İ\ˆ˜[YH[™Û™H[X™\‹‰ÎÂˆ™]\›ÂˆBˆ\œ‹^ÛÛ[H	ÉÎÂˆÜİ
+ÂˆÚXÚÚ[•\Nˆ	Û™]Ë]Ú]XØ\™]ZÙ\‰Ëˆ[Y\İ[\ˆ™]È]J
+KÒTÓÔİš[™Ê
+KˆY[X™\‘š\œİ˜[YNˆY[X™\‘š\œİˆY[X™\“\İ˜[YNˆY[X™\“\İˆØ\™]ZÙ\‘š\œİ˜[YNˆİš\œİˆØ\™]ZÙ\“\İ˜[YNˆİ\İˆØ\™]ZÙ\”Û™NˆİÛ™KˆØ\™]ZÙ\“›İ\Îˆİ›İ\ÂˆJK[Š
 
-  /* â”€â”€ CARETAKER / SUPPORT PERSON â”€â”€ */
-  function submitCaretaker() {
-    const memberFirst = document.getElementById('ct-member-first').value.trim();
-    const memberLast  = document.getElementById('ct-member-last').value.trim();
-    const ctFirst     = document.getElementById('ct-first').value.trim();
-    const ctLast      = document.getElementById('ct-last').value.trim();
-    const ctPhone     = document.getElementById('ct-phone').value.trim();
-    const ctNotes     = document.getElementById('ct-notes').value.trim();
-    const err         = document.getElementById('ct-error');
-    if (!ctFirst || !ctLast || !ctPhone) {
-      err.textContent = 'Please enter your name and phone number.';
-      return;
-    }
-    err.textContent = '';
-    post({
-      checkinType:        'new-with-caretaker',
-      timestamp:          new Date().toISOString(),
-      memberFirstName:    memberFirst,
-      memberLastName:     memberLast,
-      caretakerFirstName: ctFirst,
-      caretakerLastName:  ctLast,
-      caretakerPhone:     ctPhone,
-      caretakerNotes:     ctNotes
-    }).then(() => {
-      const displayName = memberFirst || ctFirst;
-      success('All set, ' + displayName + '!', 'Welcome to COTS. Enjoy the meetup!');
-    });
-  }
-
-  /* â”€â”€ NEW MEMBER (no support person) â”€â”€ */
-  function submitNewMember() {
-    const first = document.getElementById('nm-first').value.trim();
-    const last  = document.getElementById('nm-last').value.trim();
-    const err   = document.getElementById('nm-error');
-    if (!first || !last) { err.textContent = 'First and lQst name are required.'; return; }
-    err.textContent = '';
-    post({
-      checkinType:   'new',
-      timestamp:     new Date().toISOString(),
-      firstName:     first,
-      lastName:      last,
+HOˆÂˆÛÛœİ\Ü^S˜[YHHY[X™\‘š\œİİš\œİÂˆİXØÙ\ÜÊ	Ğ[Ù]	È
+È\Ü^S˜[YH
+È	ÈIË	ÕÙ[ÛÛYHÈÓÕËˆ[š›ŞHHYY]\IÊNÂˆJNÂˆB‚ˆÊˆ8¥ 8¥ ‘UÈQSP‘Tˆ
+›Èİ\Ü\œÛÛŠH8¥ 8¥ 
+‹Âˆ[˜İ[ÛˆİX›Z]™]ÓY[X™\Š
+HÂˆÛÛœİš\œİHØİ[Y[™Ù][[Y[RY
+	Û›KYš\œİ	ÊK˜[YKš[J
+NÂˆÛÛœİ\İHØİ[Y[™Ù][[Y[RY
+	Û›K[\İ	ÊK˜[YKš[J
+NÂˆÛÛœİ\œˆHØİ[Y[™Ù][[Y[RY
+	Û›KY\œ›Ü‰ÊNÂˆYˆ
+Yš\œİ[\İ
+HÈ\œ‹^ÛÛ[H	Ñš\œİ[™\İ˜[YH\™H™\]Z\™Y‰ÎÈ™]\›ÈBˆ\œ‹^ÛÛ[H	ÉÎÂˆÜİ
+ÂˆÚXÚÚ[•\Nˆ	Û™]ÉËˆ[Y\İ[\ˆ™]È]J
+KÒTÓÔİš[™Ê
+Kˆš\œİ˜[YNˆš\œİˆ      lastName:      last,
       preferredName: document.getElementById('nm-preferred').value.trim(),
       pronouns:      document.getElementById('nm-pronouns').value.trim(),
       email:         document.getElementById('nm-email').value.trim(),
